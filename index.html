@@ -32,19 +32,19 @@
             <div class="mx-auto mb-8 text-8xl">📤</div>
             <p class="text-3xl font-semibold mb-3">Drop images or folder here</p>
             <p class="text-zinc-400 text-xl mb-8">Works for single, multiple, or folder selection</p>
-            
+           
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="selectFiles(false)" 
+                <button onclick="selectFiles(false)"
                         class="px-8 py-5 bg-blue-600 hover:bg-blue-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
                     📸 Select Images
                 </button>
-                
-                <button onclick="selectFiles(true)" 
+               
+                <button onclick="selectFiles(true)"
                         class="px-8 py-5 bg-purple-600 hover:bg-purple-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
                     📁 Select Folder
                 </button>
             </div>
-            
+           
             <p class="text-xs text-zinc-500 mt-8">Supported: JPG, JPEG, PNG, GIF, WebP</p>
         </div>
 
@@ -59,12 +59,11 @@
                     <h2 class="text-2xl font-semibold">Selected images</h2>
                     <span id="count-badge" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-3xl font-mono"></span>
                 </div>
-                <button onclick="clearAllFiles()" 
+                <button onclick="clearAllFiles()"
                         class="flex items-center gap-x-2 text-red-400 hover:text-red-300 text-sm font-medium">
                     🗑️ Clear all
                 </button>
             </div>
-
             <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 <!-- JS populated -->
             </div>
@@ -80,15 +79,14 @@
         </button>
 
         <p id="status-text" class="text-center text-zinc-400 mt-6 min-h-[1.5rem]"></p>
-
+        
         <div class="mt-16 text-center text-xs text-zinc-500">
-            ✅ One ZIP per image • Proper Google Ads clickTag (Exit API) • Works offline
+            ✅ One ZIP per image • Proper Google Ads Exit API • Works offline
         </div>
     </div>
 
     <script>
         let selectedFiles = [];
-
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const folderInput = document.getElementById('folder-input');
@@ -104,7 +102,6 @@
             return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
         }
 
-        // Separate handlers for files vs folder
         function selectFiles(isFolder) {
             if (isFolder) {
                 folderInput.click();
@@ -121,14 +118,15 @@
             if (folderInput.files.length > 0) handleNewFiles(folderInput.files);
         });
 
-        // Drag & Drop (supports both files and folders)
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('!border-blue-500', 'bg-blue-900/10');
         });
+
         dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
         });
+
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
@@ -137,20 +135,16 @@
 
         function handleNewFiles(fileList) {
             const imageFiles = Array.from(fileList).filter(isImageFile);
-
             if (imageFiles.length === 0) {
                 alert('❌ No valid image files found.\nSupported: JPG, JPEG, PNG, GIF, WebP');
                 return;
             }
-
             const existingNames = new Set(selectedFiles.map(f => f.name));
             const newFiles = imageFiles.filter(f => !existingNames.has(f.name));
-
             if (newFiles.length === 0) {
                 alert('All selected images are already added.');
                 return;
             }
-
             selectedFiles = [...selectedFiles, ...newFiles];
             renderPreview();
         }
@@ -159,7 +153,7 @@
             previewSection.classList.remove('hidden');
             previewGrid.innerHTML = '';
             countBadge.textContent = `${selectedFiles.length} image${selectedFiles.length === 1 ? '' : 's'}`;
-
+            
             selectedFiles.forEach((file, index) => {
                 const url = URL.createObjectURL(file);
                 const cardHTML = `
@@ -168,7 +162,7 @@
                         <img src="${url}" alt="${file.name}" class="max-h-full max-w-full object-contain rounded-2xl shadow-inner">
                     </div>
                     <div class="px-4 py-3 text-sm font-medium truncate">${file.name}</div>
-                    <button onclick="removeFile(${index}); event.stopImmediatePropagation()" 
+                    <button onclick="removeFile(${index}); event.stopImmediatePropagation()"
                             class="absolute top-3 right-3 bg-red-500 hover:bg-red-600 w-7 h-7 rounded-2xl text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
                         ✕
                     </button>
@@ -178,7 +172,6 @@
                 </div>`;
                 previewGrid.insertAdjacentHTML('beforeend', cardHTML);
             });
-
             generateBtn.disabled = selectedFiles.length === 0;
         }
 
@@ -195,48 +188,76 @@
             generateBtn.disabled = true;
         }
 
-        // Google Ads Exit API (clickTag)
+        // ==================== FIXED createAdHTML ====================
         function createAdHTML(imageFilename, width, height) {
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="ad.size" content="width=${Math.round(width)},height=${Math.round(height)}">
+    <meta name="ad.orientation" content="portrait,landscape">
     <title>Image Ad</title>
+
+    <!-- REQUIRED: Google Exit API -->
+    <script type="text/javascript" src="https://tpc.googlesyndication.com/pagead/gadgets/html5/api/exitapi.js"><\/script>
+
     <script type="text/javascript">
         var clickTag = "https://www.example.com";
     <\/script>
+
     <style>
-        html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000; }
-        .ad-wrapper { position:relative; width:100%; height:100%; }
-        img { width:100%; height:100%; object-fit:contain; display:block; }
-        #click-area { position:absolute; inset:0; cursor:pointer; z-index:10; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+        .ad-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        #click-area {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
     <\/style>
 </head>
 <body>
     <div class="ad-wrapper">
-        <img src="${imageFilename}" alt="Advertisement">
-        <div id="click-area" onclick="window.open(clickTag,'_blank');"></div>
+        <img src="${imageFilename}" alt="Advertisement" loading="lazy">
+        <div id="click-area" onclick="ExitApi.exit()"></div>
     </div>
+
     <script type="text/javascript">
+        // Proper ExitApi implementation
         document.getElementById('click-area').addEventListener('click', function() {
-            window.open(clickTag, '_blank');
+            ExitApi.exit();
         });
     <\/script>
 </body>
 </html>`;
         }
+        // ============================================================
 
         async function generateHTMLAds() {
             if (selectedFiles.length === 0) return;
-
             statusText.textContent = '🔄 Processing...';
             generateBtn.disabled = true;
 
             for (let i = 0; i < selectedFiles.length; i++) {
                 const file = selectedFiles[i];
                 statusText.textContent = `📦 Creating ZIP for ${file.name} (${i+1}/${selectedFiles.length})`;
-
                 try {
                     await createAndDownloadZIP(file);
                 } catch (e) {
@@ -245,13 +266,16 @@
             }
 
             statusText.innerHTML = `✅ <span class="text-emerald-400">All ${selectedFiles.length} ZIPs downloaded successfully!</span>`;
-            setTimeout(() => { statusText.textContent = ''; generateBtn.disabled = false; }, 4000);
+            setTimeout(() => {
+                statusText.textContent = '';
+                generateBtn.disabled = false;
+            }, 4000);
         }
 
         async function createAndDownloadZIP(file) {
             const img = new Image();
             const objectURL = URL.createObjectURL(file);
-            
+           
             await new Promise((resolve, reject) => {
                 img.onload = resolve;
                 img.onerror = reject;
@@ -259,7 +283,6 @@
             });
 
             const htmlContent = createAdHTML(file.name, img.naturalWidth, img.naturalHeight);
-
             const zip = new JSZip();
             zip.file(file.name, file);
             zip.file('index.html', htmlContent);
