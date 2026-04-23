@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Image to HTML ad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .drop-zone {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .preview-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-zinc-950 to-black text-white min-h-screen pb-12">
+    <div class="max-w-5xl mx-auto px-6 pt-10">
+        <!-- Header -->
+        <div class="flex items-center justify-center gap-x-4 mb-6">
+            <span class="text-6xl">🖼️</span>
+            <h1 class="text-5xl font-semibold tracking-[-1px]">Convert Image to HTML ad</h1>
+            <span class="text-6xl">📄</span>
+        </div>
+        <p class="text-center text-zinc-400 text-lg max-w-lg mx-auto">
+            Upload a single image or an entire folder • Get Google Ads-ready ZIPs instantly
+        </p>
+
+        <!-- Upload Area -->
+        <div id="drop-zone"
+             class="drop-zone mt-10 border-4 border-dashed border-zinc-700 hover:border-blue-500 rounded-3xl p-14 text-center bg-zinc-900/50 cursor-pointer">
+            <div class="mx-auto mb-8 text-8xl">📤</div>
+            <p class="text-3xl font-semibold mb-3">Drop your images or folder here</p>
+            <p class="text-zinc-400 text-xl mb-8">Single image • Multiple images • Entire folder</p>
+            
+            <button onclick="document.getElementById('file-input').click()"
+                    class="px-10 py-5 bg-blue-600 hover:bg-blue-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
+                📸 Select Images or Folder
+            </button>
+            
+            <input type="file" id="file-input" class="hidden" multiple accept="image/*" webkitdirectory directory>
+        </div>
+
+        <!-- Selected Files Preview -->
+        <div id="preview-section" class="hidden mt-16">
+            <div class="flex items-baseline justify-between mb-6">
+                <div class="flex items-center gap-x-3">
+                    <h2 class="text-2xl font-semibold">Selected images</h2>
+                    <span id="count-badge" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-3xl font-mono"></span>
+                </div>
+                <button onclick="clearAllFiles()" 
+                        class="flex items-center gap-x-2 text-red-400 hover:text-red-300 text-sm font-medium">
+                    🗑️ Clear all
+                </button>
+            </div>
+
+            <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button onclick="generateHTMLAds()"
+                id="generate-btn"
+                disabled
+                class="mt-14 w-full py-8 rounded-3xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-3xl font-semibold flex items-center justify-center gap-x-4 shadow-2xl transition-all">
+            <span>🚀 Generate HTML AD</span>
+            <span class="text-4xl">📥</span>
+        </button>
+
+        <p id="status-text" class="text-center text-zinc-400 mt-6 min-h-[1.5rem]"></p>
+
+        <!-- Footer note -->
+        <div class="mt-16 text-center text-xs text-zinc-500 flex items-center justify-center gap-x-2">
+            <span>✅ Works offline • No data is uploaded • ZIPs are downloaded directly to your device</span>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind initialization
+        function initializeTailwind() {
+            return {
+                config(userConfig = {}) {
+                    return {
+                        content: [],
+                        theme: { extend: {} },
+                        plugins: [],
+                        ...userConfig,
+                    }
+                },
+                theme(userTheme = {}) {
+                    return { ...this.defaultTheme(), ...userTheme }
+                },
+                defaultTheme() {
+                    return { extend: {} }
+                },
+            }
+        }
+
+        // Global variables
+        let selectedFiles = []
+
+        const dropZone = document.getElementById('drop-zone')
+        const fileInput = document.getElementById('file-input')
+        const previewSection = document.getElementById('preview-section')
+        const previewGrid = document.getElementById('preview-grid')
+        const generateBtn = document.getElementById('generate-btn')
+        const statusText = document.getElementById('status-text')
+        const countBadge = document.getElementById('count-badge')
+
+        // Drag & Drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault()
+            dropZone.classList.add('!border-blue-500', 'bg-blue-900/10')
+        })
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10')
+        })
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault()
+            dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10')
+            handleNewFiles(e.dataTransfer.files)
+        })
+
+        // File input change
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                handleNewFiles(fileInput.files)
+            }
+        })
+
+        function handleNewFiles(fileList) {
+            const imageFiles = Array.from(fileList).filter(file => 
+                file.type.startsWith('image/')
+            )
+
+            if (imageFiles.length === 0) {
+                alert('❌ Please select at least one image file.')
+                return
+            }
+
+            // Add only new files (avoid duplicates by name)
+            const existingNames = new Set(selectedFiles.map(f => f.name))
+            const newFiles = imageFiles.filter(f => !existingNames.has(f.name))
+
+            selectedFiles = [...selectedFiles, ...newFiles]
+
+            renderPreview()
+        }
+
+        function renderPreview() {
+            previewSection.classList.remove('hidden')
+            previewGrid.innerHTML = ''
+            countBadge.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'}`
+
+            selectedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file)
+                
+                const cardHTML = `
+                <div class="preview-card bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 hover:border-zinc-400 group relative">
+                    <div class="aspect-square bg-black flex items-center justify-center p-3">
+                        <img src="${url}" alt="${file.name}" 
+                             class="max-h-full max-w-full object-contain rounded-2xl shadow-inner">
+                    </div>
+                    <div class="px-4 py-3 text-sm font-medium truncate">${file.name}</div>
+                    
+                    <!-- Remove button -->
+                    <button onclick="removeFile(${index}); event.stopImmediatePropagation()" 
+                            class="absolute top-3 right-3 bg-red-500 hover:bg-red-600 w-7 h-7 rounded-2xl text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        ✕
+                    </button>
+                    
+                    <div class="absolute top-3 left-3 bg-black/70 text-[10px] font-mono px-2 py-px rounded-2xl">
+                        ${Math.round(file.size / 1024)} KB
+                    </div>
+                </div>`
+
+                previewGrid.insertAdjacentHTML('beforeend', cardHTML)
+            })
+
+            generateBtn.disabled = selectedFiles.length === 0
+        }
+
+        function removeFile(index) {
+            // Revoke object URLs to prevent memory leaks
+            selectedFiles.splice(index, 1)
+            renderPreview()
+            if (selectedFiles.length === 0) {
+                previewSection.classList.add('hidden')
+            }
+        }
+
+        function clearAllFiles() {
+            selectedFiles = []
+            previewGrid.innerHTML = ''
+            previewSection.classList.add('hidden')
+            generateBtn.disabled = true
+        }
+
+        // Create the Google Ads compatible index.html
+        function createAdHTML(imageFilename, width, height) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="ad.size" content="width=${Math.round(width)},height=${Math.round(height)}">
+    <title>Image Ad</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+        .ad-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .click-layer {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="ad-wrapper">
+        <img src="${imageFilename}" alt="Advertisement">
+        <!-- Clickable area (Google Ads friendly) -->
+        <!-- Change the href below to your desired landing page -->
+        <a href="https://www.example.com" target="_blank" class="click-layer"></a>
+    </div>
+</body>
+</html>`
+        }
+
+        // Main generation function
+        async function generateHTMLAds() {
+            if (selectedFiles.length === 0) return
+
+            statusText.textContent = '🔄 Processing files...'
+            generateBtn.disabled = true
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i]
+                statusText.textContent = `📦 Creating ZIP for ${file.name} (${i + 1} of ${selectedFiles.length})`
+
+                try {
+                    await createAndDownloadZIP(file)
+                } catch (error) {
+                    console.error(error)
+                    alert(`⚠️ Failed to process ${file.name}`)
+                }
+            }
+
+            statusText.innerHTML = `✅ <span class="text-emerald-400">All ${selectedFiles.length} ZIP files downloaded!</span>`
+            
+            // Reset UI after a short delay
+            setTimeout(() => {
+                statusText.textContent = ''
+                generateBtn.disabled = false
+            }, 4000)
+        }
+
+        async function createAndDownloadZIP(file) {
+            // 1. Get original image dimensions
+            const img = new Image()
+            const objectURL = URL.createObjectURL(file)
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve
+                img.onerror = reject
+                img.src = objectURL
+            })
+
+            const width = img.naturalWidth
+            const height = img.naturalHeight
+
+            // 2. Create index.html content
+            const htmlContent = createAdHTML(file.name, width, height)
+
+            // 3. Create ZIP
+            const zip = new JSZip()
+            
+            // Add the original image
+            zip.file(file.name, file)
+            
+            // Add index.html
+            zip.file('index.html', htmlContent)
+
+            // Generate the ZIP blob
+            const zipBlob = await zip.generateAsync({ type: 'blob' })
+
+            // 4. Trigger download
+            const zipName = file.name.replace(/\.[^.]+$/, '') + '-html-ad.zip'
+            
+            const link = document.createElement('a')
+            link.href = URL.createObjectURL(zipBlob)
+            link.download = zipName
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            // Cleanup
+            URL.revokeObjectURL(objectURL)
+        }
+
+        // Auto-initialize
+        window.onload = () => {
+            initializeTailwind()
+            console.log('%c✅ Convert Image to HTML ad web page ready!', 'color:#10b981; font-size:13px; font-weight:600')
+        }
+    </script>
+</body>
+</html>
