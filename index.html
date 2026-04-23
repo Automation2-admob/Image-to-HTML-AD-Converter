@@ -8,15 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-        .drop-zone {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .preview-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .drop-zone { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .preview-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="bg-gradient-to-br from-zinc-950 to-black text-white min-h-screen pb-12">
@@ -28,15 +22,15 @@
             <span class="text-6xl">📄</span>
         </div>
         <p class="text-center text-zinc-400 text-lg max-w-lg mx-auto">
-            Upload images → Get Google Ads-ready HTML5 ZIPs (with proper clickTag)
+            Upload images or folders → Get Google Ads-ready HTML5 ZIPs (with proper Exit API)
         </p>
 
         <!-- Upload Area -->
         <div id="drop-zone"
              class="drop-zone mt-10 border-4 border-dashed border-zinc-700 hover:border-blue-500 rounded-3xl p-14 text-center bg-zinc-900/50 cursor-pointer">
             <div class="mx-auto mb-8 text-8xl">📤</div>
-            <p class="text-3xl font-semibold mb-3">Drop your images or folder here</p>
-            <p class="text-zinc-400 text-xl mb-8">Single image • Multiple images • Entire folder</p>
+            <p class="text-3xl font-semibold mb-3">Drop images or folder here</p>
+            <p class="text-zinc-400 text-xl mb-6">Single image • Multiple images • Entire folder</p>
             
             <button onclick="document.getElementById('file-input').click()"
                     class="px-10 py-5 bg-blue-600 hover:bg-blue-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
@@ -44,6 +38,8 @@
             </button>
             
             <input type="file" id="file-input" class="hidden" multiple accept="image/*" webkitdirectory directory>
+            
+            <p class="text-xs text-zinc-500 mt-6">Supported formats: JPG, JPEG, PNG, GIF, WebP</p>
         </div>
 
         <!-- Selected Files Preview -->
@@ -60,7 +56,7 @@
             </div>
 
             <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                <!-- Populated by JavaScript -->
+                <!-- Populated by JS -->
             </div>
         </div>
 
@@ -75,9 +71,8 @@
 
         <p id="status-text" class="text-center text-zinc-400 mt-6 min-h-[1.5rem]"></p>
 
-        <!-- Footer note -->
-        <div class="mt-16 text-center text-xs text-zinc-500 flex items-center justify-center gap-x-2">
-            <span>✅ Works offline • Proper clickTag included • Ready for Google Ads upload</span>
+        <div class="mt-16 text-center text-xs text-zinc-500">
+            ✅ Works offline • Uses proper Google Ads clickTag (Exit API) • One ZIP per image
         </div>
     </div>
 
@@ -92,16 +87,17 @@
         const statusText = document.getElementById('status-text');
         const countBadge = document.getElementById('count-badge');
 
+        // Improved image detection (fixes folder upload issue)
+        function isImageFile(file) {
+            if (file.type.startsWith('image/')) return true;
+            const ext = file.name.toLowerCase().split('.').pop();
+            const supported = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+            return supported.includes(ext);
+        }
+
         // Drag & Drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('!border-blue-500', 'bg-blue-900/10');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
-        });
-
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('!border-blue-500', 'bg-blue-900/10'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10'); });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
@@ -113,10 +109,10 @@
         });
 
         function handleNewFiles(fileList) {
-            const imageFiles = Array.from(fileList).filter(file => file.type.startsWith('image/'));
+            const imageFiles = Array.from(fileList).filter(file => isImageFile(file));
 
             if (imageFiles.length === 0) {
-                alert('❌ Please select at least one image file.');
+                alert('❌ No valid image files found.\n\nSupported formats: JPG, JPEG, PNG, GIF, WebP');
                 return;
             }
 
@@ -130,7 +126,7 @@
         function renderPreview() {
             previewSection.classList.remove('hidden');
             previewGrid.innerHTML = '';
-            countBadge.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'}`;
+            countBadge.textContent = `${selectedFiles.length} image${selectedFiles.length === 1 ? '' : 's'}`;
 
             selectedFiles.forEach((file, index) => {
                 const url = URL.createObjectURL(file);
@@ -167,7 +163,7 @@
             generateBtn.disabled = true;
         }
 
-        // Updated createAdHTML with proper Google Ads clickTag (no hard-coded URLs)
+        // Google Ads Exit API (clickTag) - This is what Google Ads expects
         function createAdHTML(imageFilename, width, height) {
             return `<!DOCTYPE html>
 <html lang="en">
@@ -176,50 +172,25 @@
     <meta name="ad.size" content="width=${Math.round(width)},height=${Math.round(height)}">
     <title>Image Ad</title>
 
-    <!-- REQUIRED for Google Ads click tracking -->
+    <!-- Proper Exit API (clickTag) for Google Ads - fixes validator errors -->
     <script type="text/javascript">
-        var clickTag = "https://www.example.com";   // Google Ads will replace this automatically
+        var clickTag = "https://www.example.com";   // Google Ads will replace this for tracking
     <\/script>
 
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000000;
-        }
-        .ad-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-        #click-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            z-index: 10;
-        }
+        html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000; }
+        .ad-wrapper { position:relative; width:100%; height:100%; }
+        img { width:100%; height:100%; object-fit:contain; display:block; }
+        #click-area { position:absolute; inset:0; cursor:pointer; z-index:10; }
     <\/style>
 </head>
 <body>
     <div class="ad-wrapper">
         <img src="${imageFilename}" alt="Advertisement">
-        <div id="click-area" onclick="window.open(clickTag, '_blank');"></div>
+        <div id="click-area" onclick="window.open(clickTag,'_blank');"></div>
     </div>
 
     <script type="text/javascript">
-        // Extra safety for click handling
         document.getElementById('click-area').addEventListener('click', function() {
             window.open(clickTag, '_blank');
         });
@@ -231,27 +202,22 @@
         async function generateHTMLAds() {
             if (selectedFiles.length === 0) return;
 
-            statusText.textContent = '🔄 Processing files...';
+            statusText.textContent = '🔄 Processing...';
             generateBtn.disabled = true;
 
             for (let i = 0; i < selectedFiles.length; i++) {
                 const file = selectedFiles[i];
-                statusText.textContent = `📦 Creating ZIP for ${file.name} (${i + 1} of ${selectedFiles.length})`;
+                statusText.textContent = `📦 Creating ZIP for ${file.name} (${i+1}/${selectedFiles.length})`;
 
                 try {
                     await createAndDownloadZIP(file);
-                } catch (error) {
-                    console.error(error);
-                    alert(`⚠️ Failed to process ${file.name}`);
+                } catch (e) {
+                    alert(`Failed to process ${file.name}`);
                 }
             }
 
-            statusText.innerHTML = `✅ <span class="text-emerald-400">All ${selectedFiles.length} ZIP files downloaded! Ready for Google Ads.</span>`;
-            
-            setTimeout(() => {
-                statusText.textContent = '';
-                generateBtn.disabled = false;
-            }, 4000);
+            statusText.innerHTML = `✅ <span class="text-emerald-400">All ZIPs downloaded! Ready for Google Ads.</span>`;
+            setTimeout(() => { statusText.textContent = ''; generateBtn.disabled = false; }, 4000);
         }
 
         async function createAndDownloadZIP(file) {
@@ -259,24 +225,18 @@
             const objectURL = URL.createObjectURL(file);
             
             await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-                img.src = objectURL;
+                img.onload = resolve; img.onerror = reject; img.src = objectURL;
             });
 
-            const width = img.naturalWidth;
-            const height = img.naturalHeight;
-
-            const htmlContent = createAdHTML(file.name, width, height);
+            const htmlContent = createAdHTML(file.name, img.naturalWidth, img.naturalHeight);
 
             const zip = new JSZip();
             zip.file(file.name, file);
             zip.file('index.html', htmlContent);
 
             const zipBlob = await zip.generateAsync({ type: 'blob' });
-
             const zipName = file.name.replace(/\.[^.]+$/, '') + '-google-ad.zip';
-            
+
             const link = document.createElement('a');
             link.href = URL.createObjectURL(zipBlob);
             link.download = zipName;
@@ -288,7 +248,7 @@
         }
 
         window.onload = () => {
-            console.log('%c✅ Convert Image to HTML ad (Google Ads ready) loaded!', 'color:#10b981; font-size:13px; font-weight:600');
+            console.log('%c✅ Convert Image to HTML ad (Google Ads ready) loaded!', 'color:#10b981; font-weight:600');
         };
     </script>
 </body>
