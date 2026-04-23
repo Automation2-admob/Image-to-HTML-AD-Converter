@@ -15,69 +15,81 @@
 </head>
 <body class="bg-gradient-to-br from-zinc-950 to-black text-white min-h-screen pb-12">
     <div class="max-w-5xl mx-auto px-6 pt-10">
+        <!-- Header -->
         <div class="flex items-center justify-center gap-x-4 mb-6">
             <span class="text-6xl">🖼️</span>
             <h1 class="text-5xl font-semibold tracking-[-1px]">Convert Image to HTML ad</h1>
             <span class="text-6xl">📄</span>
         </div>
-        <p class="text-center text-zinc-400 text-lg">Upload images → Choose size mode → Get Google Ads-ready ZIPs</p>
+        <p class="text-center text-zinc-400 text-lg max-w-lg mx-auto">
+            Upload single image • Multiple images • Or entire folder<br>
+            Get Google Ads-ready ZIPs with proper clickTag
+        </p>
 
         <!-- Upload Area -->
-        <div id="drop-zone" class="drop-zone mt-10 border-4 border-dashed border-zinc-700 hover:border-blue-500 rounded-3xl p-14 text-center bg-zinc-900/50 cursor-pointer">
+        <div id="drop-zone"
+             class="drop-zone mt-10 border-4 border-dashed border-zinc-700 hover:border-blue-500 rounded-3xl p-14 text-center bg-zinc-900/50 cursor-pointer">
             <div class="mx-auto mb-8 text-8xl">📤</div>
             <p class="text-3xl font-semibold mb-3">Drop images or folder here</p>
+            <p class="text-zinc-400 text-xl mb-8">Works for single, multiple, or folder selection</p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="selectFiles(false)" class="px-8 py-5 bg-blue-600 hover:bg-blue-500 rounded-3xl text-xl font-semibold flex items-center gap-x-3">
+                <button onclick="selectFiles(false)" 
+                        class="px-8 py-5 bg-blue-600 hover:bg-blue-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
                     📸 Select Images
                 </button>
-                <button onclick="selectFiles(true)" class="px-8 py-5 bg-purple-600 hover:bg-purple-500 rounded-3xl text-xl font-semibold flex items-center gap-x-3">
+                
+                <button onclick="selectFiles(true)" 
+                        class="px-8 py-5 bg-purple-600 hover:bg-purple-500 rounded-3xl text-xl font-semibold inline-flex items-center gap-x-3 shadow-2xl">
                     📁 Select Folder
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 mt-6">JPG, JPEG, PNG, GIF, WebP supported</p>
+            
+            <p class="text-xs text-zinc-500 mt-8">Supported: JPG, JPEG, PNG, GIF, WebP</p>
         </div>
 
+        <!-- Hidden file inputs -->
         <input type="file" id="file-input" class="hidden" multiple accept="image/*">
         <input type="file" id="folder-input" class="hidden" webkitdirectory directory>
 
-        <!-- Preview -->
+        <!-- Selected Files Preview -->
         <div id="preview-section" class="hidden mt-16">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex items-baseline justify-between mb-6">
                 <div class="flex items-center gap-x-3">
                     <h2 class="text-2xl font-semibold">Selected images</h2>
-                    <span id="count-badge" class="bg-blue-600 px-3 py-1 rounded-3xl text-sm"></span>
+                    <span id="count-badge" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-3xl font-mono"></span>
                 </div>
-                <button onclick="clearAllFiles()" class="text-red-400 hover:text-red-300">🗑️ Clear all</button>
+                <button onclick="clearAllFiles()" 
+                        class="flex items-center gap-x-2 text-red-400 hover:text-red-300 text-sm font-medium">
+                    🗑️ Clear all
+                </button>
             </div>
-            <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
-        </div>
 
-        <!-- Size Mode Selector -->
-        <div class="mt-12 bg-zinc-900 rounded-3xl p-6">
-            <label class="block text-lg font-medium mb-3">Ad Size Mode (Aspect Ratio)</label>
-            <select id="size-mode" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white text-lg focus:outline-none focus:border-blue-500">
-                <option value="original">Original (Keep uploaded size - Recommended default)</option>
-                <option value="landscape">Landscape 1.91:1 (1200×628 recommended for Google Ads)</option>
-                <option value="square">Square 1:1 (1200×1200 recommended)</option>
-                <option value="vertical">Vertical 4:5 (1200×1500 – good for tall placements)</option>
-            </select>
-            <p class="text-xs text-zinc-500 mt-3">Original = no cropping. Other modes will intelligently resize & crop to remove scrolling.</p>
+            <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- JS populated -->
+            </div>
         </div>
 
         <!-- Generate Button -->
-        <button onclick="generateHTMLAds()" id="generate-btn" disabled
-                class="mt-10 w-full py-8 rounded-3xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 text-3xl font-semibold flex items-center justify-center gap-x-4">
-            🚀 Generate HTML AD for Google Ads
+        <button onclick="generateHTMLAds()"
+                id="generate-btn"
+                disabled
+                class="mt-14 w-full py-8 rounded-3xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-3xl font-semibold flex items-center justify-center gap-x-4 shadow-2xl transition-all">
+            <span>🚀 Generate HTML AD for Google Ads</span>
             <span class="text-4xl">📥</span>
         </button>
 
         <p id="status-text" class="text-center text-zinc-400 mt-6 min-h-[1.5rem]"></p>
+
+        <div class="mt-16 text-center text-xs text-zinc-500">
+            ✅ One ZIP per image • Proper Google Ads clickTag (Exit API) • Works offline
+        </div>
     </div>
 
     <script>
         let selectedFiles = [];
 
+        const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const folderInput = document.getElementById('folder-input');
         const previewSection = document.getElementById('preview-section');
@@ -85,39 +97,60 @@
         const generateBtn = document.getElementById('generate-btn');
         const statusText = document.getElementById('status-text');
         const countBadge = document.getElementById('count-badge');
-        const sizeModeSelect = document.getElementById('size-mode');
 
         function isImageFile(file) {
             if (file.type.startsWith('image/')) return true;
             const ext = file.name.toLowerCase().split('.').pop();
-            return ['jpg','jpeg','png','gif','webp'].includes(ext);
+            return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
         }
 
+        // Separate handlers for files vs folder
         function selectFiles(isFolder) {
-            isFolder ? folderInput.click() : fileInput.click();
+            if (isFolder) {
+                folderInput.click();
+            } else {
+                fileInput.click();
+            }
         }
 
-        fileInput.addEventListener('change', () => handleNewFiles(fileInput.files));
-        folderInput.addEventListener('change', () => handleNewFiles(folderInput.files));
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) handleNewFiles(fileInput.files);
+        });
 
-        // Drag & Drop
-        const dropZone = document.getElementById('drop-zone');
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('!border-blue-500'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('!border-blue-500'));
-        dropZone.addEventListener('drop', e => {
+        folderInput.addEventListener('change', () => {
+            if (folderInput.files.length > 0) handleNewFiles(folderInput.files);
+        });
+
+        // Drag & Drop (supports both files and folders)
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('!border-blue-500');
+            dropZone.classList.add('!border-blue-500', 'bg-blue-900/10');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('!border-blue-500', 'bg-blue-900/10');
             handleNewFiles(e.dataTransfer.files);
         });
 
         function handleNewFiles(fileList) {
-            const images = Array.from(fileList).filter(isImageFile);
-            if (images.length === 0) {
-                alert("No valid images found.");
+            const imageFiles = Array.from(fileList).filter(isImageFile);
+
+            if (imageFiles.length === 0) {
+                alert('❌ No valid image files found.\nSupported: JPG, JPEG, PNG, GIF, WebP');
                 return;
             }
-            const existing = new Set(selectedFiles.map(f => f.name));
-            const newFiles = images.filter(f => !existing.has(f.name));
+
+            const existingNames = new Set(selectedFiles.map(f => f.name));
+            const newFiles = imageFiles.filter(f => !existingNames.has(f.name));
+
+            if (newFiles.length === 0) {
+                alert('All selected images are already added.');
+                return;
+            }
+
             selectedFiles = [...selectedFiles, ...newFiles];
             renderPreview();
         }
@@ -125,21 +158,28 @@
         function renderPreview() {
             previewSection.classList.remove('hidden');
             previewGrid.innerHTML = '';
-            countBadge.textContent = `${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''}`;
+            countBadge.textContent = `${selectedFiles.length} image${selectedFiles.length === 1 ? '' : 's'}`;
 
-            selectedFiles.forEach((file, i) => {
+            selectedFiles.forEach((file, index) => {
                 const url = URL.createObjectURL(file);
-                previewGrid.innerHTML += `
-                    <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 group relative">
-                        <div class="aspect-square bg-black p-3 flex items-center justify-center">
-                            <img src="${url}" class="max-h-full max-w-full object-contain rounded-2xl" alt="${file.name}">
-                        </div>
-                        <div class="p-3 text-sm truncate">${file.name}</div>
-                        <button onclick="removeFile(${i});event.stopImmediatePropagation()" 
-                                class="absolute top-3 right-3 bg-red-500 text-white w-7 h-7 rounded-2xl opacity-0 group-hover:opacity-100">✕</button>
-                    </div>`;
+                const cardHTML = `
+                <div class="preview-card bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-700 hover:border-zinc-400 group relative">
+                    <div class="aspect-square bg-black flex items-center justify-center p-3">
+                        <img src="${url}" alt="${file.name}" class="max-h-full max-w-full object-contain rounded-2xl shadow-inner">
+                    </div>
+                    <div class="px-4 py-3 text-sm font-medium truncate">${file.name}</div>
+                    <button onclick="removeFile(${index}); event.stopImmediatePropagation()" 
+                            class="absolute top-3 right-3 bg-red-500 hover:bg-red-600 w-7 h-7 rounded-2xl text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        ✕
+                    </button>
+                    <div class="absolute top-3 left-3 bg-black/70 text-[10px] font-mono px-2 py-px rounded-2xl">
+                        ${Math.round(file.size / 1024)} KB
+                    </div>
+                </div>`;
+                previewGrid.insertAdjacentHTML('beforeend', cardHTML);
             });
-            generateBtn.disabled = false;
+
+            generateBtn.disabled = selectedFiles.length === 0;
         }
 
         function removeFile(index) {
@@ -155,72 +195,34 @@
             generateBtn.disabled = true;
         }
 
-        // Resize image to target aspect ratio using canvas (smart crop from center)
-        async function resizeImage(file, mode) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    let targetW, targetH;
-
-                    if (mode === 'original') {
-                        targetW = img.width;
-                        targetH = img.height;
-                    } else if (mode === 'landscape') { // 1.91:1
-                        targetW = 1200;
-                        targetH = Math.round(1200 / 1.91);
-                    } else if (mode === 'square') { // 1:1
-                        targetW = 1200;
-                        targetH = 1200;
-                    } else if (mode === 'vertical') { // 4:5 (common vertical)
-                        targetW = 1200;
-                        targetH = 1500;
-                    }
-
-                    const canvas = document.createElement('canvas');
-                    canvas.width = targetW;
-                    canvas.height = targetH;
-                    const ctx = canvas.getContext('2d');
-
-                    // Calculate cropping to keep center
-                    const scale = Math.max(targetW / img.width, targetH / img.height);
-                    const newW = img.width * scale;
-                    const newH = img.height * scale;
-                    const offsetX = (targetW - newW) / 2;
-                    const offsetY = (targetH - newH) / 2;
-
-                    ctx.drawImage(img, offsetX, offsetY, newW, newH);
-
-                    canvas.toBlob(blob => {
-                        const resizedFile = new File([blob], file.name, { type: file.type || 'image/jpeg' });
-                        resolve({ file: resizedFile, width: targetW, height: targetH });
-                    }, 'image/jpeg', 0.92);
-                };
-                img.src = URL.createObjectURL(file);
-            });
-        }
-
-        // Google Ads HTML with clickTag
+        // Google Ads Exit API (clickTag)
         function createAdHTML(imageFilename, width, height) {
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="ad.size" content="width=${width},height=${height}">
+    <meta name="ad.size" content="width=${Math.round(width)},height=${Math.round(height)}">
     <title>Image Ad</title>
-    <script type="text/javascript">var clickTag = "https://www.example.com";</script>
+    <script type="text/javascript">
+        var clickTag = "https://www.example.com";
+    <\/script>
     <style>
-        html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}
-        .ad-wrapper{position:relative;width:100%;height:100%;}
-        img{width:100%;height:100%;object-fit:contain;display:block;}
-        #click-area{position:absolute;inset:0;cursor:pointer;z-index:10;}
-    </style>
+        html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000; }
+        .ad-wrapper { position:relative; width:100%; height:100%; }
+        img { width:100%; height:100%; object-fit:contain; display:block; }
+        #click-area { position:absolute; inset:0; cursor:pointer; z-index:10; }
+    <\/style>
 </head>
 <body>
     <div class="ad-wrapper">
-        <img src="${imageFilename}" alt="Ad">
+        <img src="${imageFilename}" alt="Advertisement">
         <div id="click-area" onclick="window.open(clickTag,'_blank');"></div>
     </div>
-    <script>document.getElementById('click-area').addEventListener('click',()=>window.open(clickTag,'_blank'));</script>
+    <script type="text/javascript">
+        document.getElementById('click-area').addEventListener('click', function() {
+            window.open(clickTag, '_blank');
+        });
+    <\/script>
 </body>
 </html>`;
         }
@@ -228,37 +230,56 @@
         async function generateHTMLAds() {
             if (selectedFiles.length === 0) return;
 
-            const mode = sizeModeSelect.value;
-            statusText.textContent = '🔄 Processing images...';
+            statusText.textContent = '🔄 Processing...';
             generateBtn.disabled = true;
 
             for (let i = 0; i < selectedFiles.length; i++) {
-                const originalFile = selectedFiles[i];
-                statusText.textContent = `📦 Processing ${originalFile.name} (${i+1}/${selectedFiles.length})`;
+                const file = selectedFiles[i];
+                statusText.textContent = `📦 Creating ZIP for ${file.name} (${i+1}/${selectedFiles.length})`;
 
                 try {
-                    const processed = await resizeImage(originalFile, mode);
-                    const htmlContent = createAdHTML(processed.file.name, processed.width, processed.height);
-
-                    const zip = new JSZip();
-                    zip.file(processed.file.name, processed.file);
-                    zip.file('index.html', htmlContent);
-
-                    const zipBlob = await zip.generateAsync({type: 'blob'});
-                    const zipName = originalFile.name.replace(/\.[^.]+$/, '') + `-${mode}-ad.zip`;
-
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(zipBlob);
-                    link.download = zipName;
-                    link.click();
+                    await createAndDownloadZIP(file);
                 } catch (e) {
                     console.error(e);
                 }
             }
 
-            statusText.innerHTML = `✅ All ZIP files downloaded!`;
-            setTimeout(() => { statusText.textContent = ''; generateBtn.disabled = false; }, 3000);
+            statusText.innerHTML = `✅ <span class="text-emerald-400">All ${selectedFiles.length} ZIPs downloaded successfully!</span>`;
+            setTimeout(() => { statusText.textContent = ''; generateBtn.disabled = false; }, 4000);
         }
+
+        async function createAndDownloadZIP(file) {
+            const img = new Image();
+            const objectURL = URL.createObjectURL(file);
+            
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = objectURL;
+            });
+
+            const htmlContent = createAdHTML(file.name, img.naturalWidth, img.naturalHeight);
+
+            const zip = new JSZip();
+            zip.file(file.name, file);
+            zip.file('index.html', htmlContent);
+
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const zipName = file.name.replace(/\.[^.]+$/, '') + '-google-ad.zip';
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(zipBlob);
+            link.download = zipName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(objectURL);
+        }
+
+        window.onload = () => {
+            console.log('%c✅ Image to HTML ad tool ready!', 'color:#10b981; font-weight:600');
+        };
     </script>
 </body>
 </html>
